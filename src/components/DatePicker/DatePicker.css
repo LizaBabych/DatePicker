@@ -1,0 +1,135 @@
+.wrapper {
+    position: relative;
+    width: 300px;
+}
+
+input {
+    padding: 12px 20px;
+    background-color: #fff;
+    width: 100%;
+    margin: 8px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.calendarContainer {
+    position: absolute;
+    background-color: white;
+    z-index: 1;
+    box-sizing: border-box;
+    padding: 10px;
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+.calendarHeader {
+    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    padding: 0 20px 10px 20px;
+}
+
+.calendarHeader span {
+    cursor: pointer;
+}
+
+i:hover {
+    cursor: pointer;
+}
+
+.calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+}
+
+.day {
+    color: #2d2d2d;
+    border-radius: 50%;
+    padding: 10px;
+}
+
+.calendarYear {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    max-height: 200px;
+    overflow-y: scroll;
+    text-align: center;
+}
+
+.week {
+    border-bottom: 1px solid #2d2d2d;
+    padding-bottom: 10px;
+    padding-top: 7px;
+}
+
+.today {
+    border: 1px solid lightsalmon;
+}
+
+.year {
+    color: #2d2d2d;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.year:hover {
+    background-color: lightsalmon;
+    cursor: pointer;
+    border-radius: 10px;
+}
+
+.day:nth-child(7n), .day:nth-child(7n + 1) {
+    font-weight: bold;
+}
+
+.currentDay {
+    background-color: lightsalmon;
+    border-radius: 50%;
+}
+
+.currentYear, .currentWeek {
+    background-color: lightsalmon;
+}
+
+.weekDay {
+    background-color: antiquewhite;
+    padding: 7px 0;
+    font-size: 12px;
+}
+
+.day:hover {
+    background-color: lightsalmon;
+    cursor: pointer;
+    border-radius: 50%;
+}
+
+.calendarFooter {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 10px;
+    gap: 5px;
+}
+
+.calendarFooter button {
+    width: 100%;
+    color: #2d2d2d;
+    background-color: #5885b8;
+    padding: 5px;
+    border: none;
+    border-radius: 3px;
+}
+
+.calendarFooter button:hover {
+    background-color: #638fc2;
+    cursor: pointer;
+}
+
+.calendarFooter button:disabled {
+    background-color: #ccc;
+    cursor: unset;
+}
+

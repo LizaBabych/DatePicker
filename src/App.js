@@ -5,6 +5,8 @@ const App = () => {
   return (
     <div className="App">
       <DatePicker />
+      <DatePicker />
+      <DatePicker />
     </div>
   );
 };
