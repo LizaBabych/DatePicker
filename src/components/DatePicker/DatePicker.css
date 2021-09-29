@@ -28,6 +28,7 @@ input {
     text-align: center;
     display: flex;
     justify-content: space-between;
+    align-items: center;
     font-weight: bold;
     padding: 0 20px 10px 20px;
 }
@@ -37,7 +38,13 @@ input {
 }
 
 i:hover {
+    color: #2d2d2d;
     cursor: pointer;
+}
+
+.disabled, .disabled:hover {
+    color: gray;
+    cursor: unset;
 }
 
 .calendar {
@@ -49,7 +56,7 @@ i:hover {
 .day {
     color: #2d2d2d;
     border-radius: 50%;
-    padding: 10px;
+    padding: 8px;
 }
 
 .calendarYear {
@@ -60,9 +67,50 @@ i:hover {
     text-align: center;
 }
 
+.calendarCurrentYear {
+    display: grid;
+    grid-gap: 5px;
+    grid-template-columns: repeat(2, 1fr);
+    overflow-y: scroll;
+    text-align: center;
+}
+
+.monthHeader {
+    margin: 0 0 5px 0;
+}
+
+.yearWeek {
+    text-align: center;
+    background-color: #cccccc;
+    display: grid;
+    border-radius: 3px;
+    width: 130px;
+    grid-gap: 2px;
+    grid-template-columns: repeat(7, 1fr);
+}
+
+.yearWeekDay {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.yearDay {
+    font-size: 10px;
+    margin: 0;
+    padding: 0;
+}
+
+.monthCalendar {
+    width: 100px !important;
+}
+
 .week {
     border-bottom: 1px solid #2d2d2d;
-    padding-bottom: 10px;
+    font-size: 14px;
+    padding-bottom: 7px;
     padding-top: 7px;
 }
 
@@ -105,6 +153,15 @@ i:hover {
     background-color: lightsalmon;
     cursor: pointer;
     border-radius: 50%;
+}
+
+.timeLive {
+    padding: 5px 10px;
+    color: #4a4443;
+    font-weight: bold;
+    font-size: 14px;
+    display: flex;
+    justify-content: flex-end;
 }
 
 .calendarFooter {

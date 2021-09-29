@@ -1,7 +1,7 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "./DatePicker.css";
 import { useOnClickOutside } from "../../helpers/hooks/outsideClick";
-import { convertMonth } from "../../helpers/convertMonth";
+import { convertMonth, months } from "../../helpers/convertMonth";
 import { weekDay } from "../../helpers/daysInWeek";
 import { years } from "../../helpers/availableYears";
 
@@ -16,9 +16,23 @@ const DatePicker = ({ selectedDay = new Date() }) => {
 
   const [dateRange, setDateRange] = useState("month");
 
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(selectedDay);
   const [currentMonth, setCurrentMonth] = useState(selectedDay.getMonth());
   const [currentYear, setCurrentYear] = useState(selectedDay.getFullYear());
+  const [inputValue, setInputValue] = useState(
+    selectedDay.toLocaleDateString()
+  );
+
+  const [time, setTime] = useState(new Date());
+  const timer = setInterval(() => tick(), 1000);
+
+  useEffect(() => {
+    return () => clearInterval(timer);
+  }, []);
+
+  const tick = () => {
+    setTime(new Date());
+  };
 
   const daysInMonth = (month, year) => {
     return new Date(year, month, 0).getDate();
@@ -36,10 +50,12 @@ const DatePicker = ({ selectedDay = new Date() }) => {
     newDate.setFullYear(year);
     setCurrentYear(year);
     setCurrentDate(newDate);
+    setInputValue(newDate.toLocaleDateString());
     if (dateRange === "year") {
       setDateRange("month");
     } else {
       setOpenCalendar(false);
+      clearInterval(timer);
     }
   };
 
@@ -65,6 +81,21 @@ const DatePicker = ({ selectedDay = new Date() }) => {
     }
   };
 
+  const dayClassNames = (day, className) => {
+    const current =
+      currentDate.getMonth() === currentMonth &&
+      day === currentDate.getDate() &&
+      currentDate.getFullYear() === currentYear;
+    const todayDate = new Date();
+    const today =
+      todayDate.getMonth() === currentMonth &&
+      day === todayDate.getDate() &&
+      todayDate.getFullYear() === currentYear;
+    return `${className} ${current && "currentDay"} ${
+      today && className === "day" && "today"
+    }`;
+  };
+
   const monthMode = (
     <div className="calendar">
       {weekDay.map((day) => {
@@ -86,22 +117,10 @@ const DatePicker = ({ selectedDay = new Date() }) => {
         if (!day) {
           return;
         }
-        const dayClassNames = () => {
-          const current =
-            currentDate.getMonth() === currentMonth &&
-            day === currentDate.getDate() &&
-            currentDate.getFullYear() === currentYear;
-          const todayDate = new Date();
-          const today =
-            todayDate.getMonth() === currentMonth &&
-            day === todayDate.getDate() &&
-            todayDate.getFullYear() === currentYear;
-          return `day ${current && "currentDay"} ${today && "today"}`;
-        };
         return (
           <div
             key={day}
-            className={dayClassNames()}
+            className={dayClassNames(day, "day")}
             onClick={() => selectDate(day)}
           >
             {day}
@@ -156,7 +175,53 @@ const DatePicker = ({ selectedDay = new Date() }) => {
               currentDate.getDay() === index && "currentWeek"
             }`}
           >
-            {day} {countCurrentWeek()[index]}
+            <b>{`${day} `}</b>
+            <span>{countCurrentWeek()[index]}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  const currentYearMode = (
+    <div className="calendarCurrentYear">
+      {months.map((month, index) => {
+        return (
+          <div>
+            <h6 className="monthHeader">{month}</h6>
+            <div className="calendar">
+              {weekDay.map((day) => {
+                return (
+                  <div key={day} className="yearWeekDay">
+                    {day}
+                  </div>
+                );
+              })}
+            </div>
+            <div className="yearWeek">
+              {[
+                ...Array(new Date(currentYear, index, 1).getDay() + 1).keys(),
+              ].map((day) => {
+                if (!day) {
+                  return;
+                }
+                return <div key={day} />;
+              })}
+              {[...Array(daysInCurrentMonth + 1).keys()].map((day) => {
+                if (!day) {
+                  return;
+                }
+                return (
+                  <div
+                    key={day}
+                    className={dayClassNames(day, "yearDay")}
+                    onClick={() => selectDate(day)}
+                  >
+                    {day}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         );
       })}
@@ -167,20 +232,49 @@ const DatePicker = ({ selectedDay = new Date() }) => {
     <div className="wrapper" ref={calendarRef}>
       <input
         onClick={() => setOpenCalendar(true)}
-        value={currentDate.toDateString()}
+        placeholder="dd/mm/yyyy"
+        onChange={(e) => {
+          setInputValue("");
+          setOpenCalendar(false);
+          setInputValue(e.target.value);
+        }}
+        onBlur={(e) => {
+          const dateReg = /^\d{2}([./-])\d{2}\1\d{4}$/;
+          if (!e.target.value.match(dateReg)) {
+            setInputValue(currentDate.toLocaleDateString());
+          } else {
+            const date = new Date();
+            const eventTarget = e.target.value;
+            const value = {
+              day: eventTarget.slice(0, 2),
+              month: eventTarget.slice(3, 5) - 1,
+              year: eventTarget.slice(6, 10),
+            };
+            date.setDate(+value.day);
+            date.setMonth(value.month);
+            date.setFullYear(+value.year);
+            setInputValue(eventTarget);
+            setCurrentDate(date);
+            setCurrentMonth(value.month);
+            setCurrentYear(+value.year);
+          }
+        }}
+        value={inputValue}
       />
       {isCalendarOpen && (
         <div className="calendarContainer">
           <header className="calendarHeader">
-            <i onClick={() => prevMonth()}> {"<"} </i>
+            <i className="fas fa-chevron-left" onClick={() => prevMonth()} />
             <span onClick={() => setDateRange("year")}>{`${convertMonth(
               currentMonth
             )} ${currentYear}`}</span>
-            <i onClick={() => nextMonth()}> > </i>
+            <i className="fas fa-chevron-right" onClick={() => nextMonth()} />
           </header>
           {dateRange === "month" && monthMode}
           {dateRange === "year" && yearMode}
           {dateRange === "week" && weekMode}
+          {dateRange === "currentYear" && currentYearMode}
+          <div className="timeLive">{time.toLocaleTimeString()}</div>
           <footer className="calendarFooter">
             <button
               disabled={dateRange === "month"}
@@ -195,8 +289,8 @@ const DatePicker = ({ selectedDay = new Date() }) => {
               Week
             </button>
             <button
-              disabled={dateRange === "year"}
-              onClick={() => setDateRange("year")}
+              disabled={dateRange === "currentYear"}
+              onClick={() => setDateRange("currentYear")}
             >
               Year
             </button>
