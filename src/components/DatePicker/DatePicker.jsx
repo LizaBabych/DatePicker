@@ -24,15 +24,11 @@ const DatePicker = ({ selectedDay = new Date() }) => {
   );
 
   const [time, setTime] = useState(new Date());
-  const timer = setInterval(() => tick(), 1000);
 
   useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
-  }, []);
-
-  const tick = () => {
-    setTime(new Date());
-  };
+  }, [isCalendarOpen]);
 
   const daysInMonth = (month, year) => {
     return new Date(year, month, 0).getDate();
@@ -43,23 +39,25 @@ const DatePicker = ({ selectedDay = new Date() }) => {
     currentDate.getFullYear()
   );
 
-  const selectDate = (date, year = currentYear) => {
+  const selectDate = (date, year = currentYear, month) => {
     const newDate = new Date();
     newDate.setDate(date);
-    newDate.setMonth(currentMonth);
+    newDate.setMonth(month ? month : currentMonth);
     newDate.setFullYear(year);
     setCurrentYear(year);
-    setCurrentDate(newDate);
+    setCurrentDate(() => newDate);
+    if (month) {
+      setCurrentMonth(month);
+    }
     setInputValue(newDate.toLocaleDateString());
-    if (dateRange === "year") {
+    if (dateRange === "year" || dateRange === "currentYear") {
       setDateRange("month");
     } else {
       setOpenCalendar(false);
-      clearInterval(timer);
     }
   };
 
-  const nextMonth = () => {
+  const next = () => {
     if (dateRange === "month") {
       if (currentMonth === 11) {
         setCurrentMonth(0);
@@ -68,9 +66,12 @@ const DatePicker = ({ selectedDay = new Date() }) => {
         setCurrentMonth(currentMonth + 1);
       }
     }
+    if (dateRange === "currentYear") {
+      setCurrentYear(currentYear + 1);
+    }
   };
 
-  const prevMonth = () => {
+  const prev = () => {
     if (dateRange === "month") {
       if (currentMonth === 0) {
         setCurrentMonth(11);
@@ -79,9 +80,12 @@ const DatePicker = ({ selectedDay = new Date() }) => {
         setCurrentMonth(currentMonth - 1);
       }
     }
+    if (dateRange === "currentYear") {
+      setCurrentYear(currentYear - 1);
+    }
   };
 
-  const dayClassNames = (day, className) => {
+  const dayClassNames = (day, className, month) => {
     const current =
       currentDate.getMonth() === currentMonth &&
       day === currentDate.getDate() &&
@@ -91,9 +95,16 @@ const DatePicker = ({ selectedDay = new Date() }) => {
       todayDate.getMonth() === currentMonth &&
       day === todayDate.getDate() &&
       todayDate.getFullYear() === currentYear;
-    return `${className} ${current && "currentDay"} ${
-      today && className === "day" && "today"
-    }`;
+    const todayYear =
+      day === currentDate.getDate() &&
+      month &&
+      currentDate.getFullYear() === currentYear &&
+      month === currentDate.getMonth();
+    return `${className} ${
+      current && dateRange !== "currentYear" && "currentDay"
+    } ${
+      today && className === "day" && dateRange !== "currentYear" && "today"
+    } ${todayYear && dateRange === "currentYear" && "currentDay"}`;
   };
 
   const monthMode = (
@@ -114,16 +125,13 @@ const DatePicker = ({ selectedDay = new Date() }) => {
         return <div key={day} />;
       })}
       {[...Array(daysInCurrentMonth + 1).keys()].map((day) => {
-        if (!day) {
-          return;
-        }
         return (
           <div
             key={day}
-            className={dayClassNames(day, "day")}
-            onClick={() => selectDate(day)}
+            className={dayClassNames(day + 1, "day")}
+            onClick={() => selectDate(day + 1)}
           >
-            {day}
+            {day + 1}
           </div>
         );
       })}
@@ -133,21 +141,18 @@ const DatePicker = ({ selectedDay = new Date() }) => {
   const yearMode = (
     <div className="calendarYear">
       {years().map((year) => {
-        if (!year) {
-          return;
-        }
         return (
           <div
             key={year}
-            className={`year ${new Date().getFullYear() === year && "today"} ${
-              currentDate.getFullYear() === year && "currentYear"
-            }`}
+            className={`year ${
+              new Date().getFullYear() === year + 1 && "today"
+            } ${currentDate.getFullYear() === year && "currentYear"}`}
             onClick={() => {
-              selectDate(currentDate.getDate(), year);
+              selectDate(currentDate.getDate(), year + 1);
               setDateRange("month");
             }}
           >
-            {year}
+            {year + 1}
           </div>
         );
       })}
@@ -186,6 +191,7 @@ const DatePicker = ({ selectedDay = new Date() }) => {
   const currentYearMode = (
     <div className="calendarCurrentYear">
       {months.map((month, index) => {
+        const daysPerMonth = daysInMonth(index + 1, currentYear);
         return (
           <div>
             <h6 className="monthHeader">{month}</h6>
@@ -207,17 +213,14 @@ const DatePicker = ({ selectedDay = new Date() }) => {
                 }
                 return <div key={day} />;
               })}
-              {[...Array(daysInCurrentMonth + 1).keys()].map((day) => {
-                if (!day) {
-                  return;
-                }
+              {[...Array(daysPerMonth).keys()].map((day) => {
                 return (
                   <div
                     key={day}
-                    className={dayClassNames(day, "yearDay")}
-                    onClick={() => selectDate(day)}
+                    className={dayClassNames(day + 1, "yearDay", index)}
+                    onClick={() => selectDate(day + 1, currentYear, index)}
                   >
-                    {day}
+                    {day + 1}
                   </div>
                 );
               })}
@@ -264,11 +267,11 @@ const DatePicker = ({ selectedDay = new Date() }) => {
       {isCalendarOpen && (
         <div className="calendarContainer">
           <header className="calendarHeader">
-            <i className="fas fa-chevron-left" onClick={() => prevMonth()} />
-            <span onClick={() => setDateRange("year")}>{`${convertMonth(
-              currentMonth
-            )} ${currentYear}`}</span>
-            <i className="fas fa-chevron-right" onClick={() => nextMonth()} />
+            <i className="fas fa-chevron-left" onClick={() => prev()} />
+            <span onClick={() => setDateRange("year")}>{`${
+              dateRange !== "currentYear" ? convertMonth(currentMonth) : ""
+            } ${currentYear}`}</span>
+            <i className="fas fa-chevron-right" onClick={() => next()} />
           </header>
           {dateRange === "month" && monthMode}
           {dateRange === "year" && yearMode}
